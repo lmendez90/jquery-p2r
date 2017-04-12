@@ -1,29 +1,23 @@
-+(function _pulltorefresh__module($, document) {
++(function _pulltorefresh__module($) {
     'use strict';
 
     // Class Definition
     var PullToRefresh = function (element, options) {
         this.$element = $(element);
-        
         this.options = $.extend({}, self.DEFAULTS, options);
-        
         this.$scroll = $(options.scroll);
-        
-        
         this.flags = {
             prevented: false,
             moving: false,
             touched: false,
             isTouch: false,
-            refreshed: false,
+            refreshed: false
         };
 
         this.positions = {
             startY: 0,
             startX: 0,
-            currentY : 0,
-            currentX : 0,
-            lastStep: 0,
+            lastStep: 0
         }
     };
 
@@ -42,7 +36,7 @@
         resetSpeed: "100ms", // speed of reset animation in milliseconds
         simulateTouch: true, // simulate touch events with mouse events
         threshold: 20, // integer with the threshold variation of the y axis
-        scroll: document // class name to scroll element
+        scroll: ".p2r-scroll" // class name to scroll element
     };
 
 
@@ -60,7 +54,7 @@
         touch: (window.Modernizr && Modernizr.touch === true) || (function () {
             'use strict';
             return !!(('ontouchstart' in window) || window.DocumentTouch && document instanceof DocumentTouch);
-        })(),
+        })()
 
     };
 
@@ -267,7 +261,7 @@
         var isTouchEvent = event.type === 'touchstart',
             axis = this.getAxis(event, isTouchEvent);
 
-        // only move $element if $scroll do not have scroll
+        // only move element if this not has scroll
         if (this.$scroll.scrollTop() > 0) {
             return true;
         }
@@ -283,8 +277,6 @@
 
         this.positions.startY = axis.y;
         this.positions.startX = axis.x;
-        this.positions.currentY = axis.y;
-        this.positions.currentX = axis.x;
 
         this.$element.trigger(PullToRefresh.namespace('start'), [axis.y])
 
@@ -298,7 +290,6 @@
      * @method
      */
     PullToRefresh.prototype.onTouchMove = function _pulltorefresh__ontouchmove(event) {
-
         var isTouchEvent = event.type === 'touchmove',
             delta,
             step,
@@ -311,18 +302,16 @@
         }
 
         // detect if element has click
-        if (!this.flags.prevented && event.target && (event.target.click || event.target.onclick)) {
-            $(event.target).off('click');
-            setTimeout(function () {
-                $(event.target).on('click');
-            }, 0);
-            this.flags.prevented = true;
-        }
+        //if (!this.flags.prevented && event.target && (event.target.click || event.target.onclick)) {
+        //    $(event.target).off('click');
+        //    setTimeout(function () {
+        //        $(event.target).on('click');
+        //    }, 0);
+        //    this.flags.prevented = true;
+        //}
 
         // get axis pair
         axis = this.getAxis(event, isTouchEvent);
-        this.positions.currentY = axis.y;
-        this.positions.currentX = axis.x;
 
         // get variation of position between start y axis and current y axis
         delta = (axis.y - this.positions.startY);
@@ -395,24 +384,22 @@
      * @method
      */
     PullToRefresh.prototype.onTouchEnd = function PullToRefresh__onTouchEnd(event) {
-
+        this.remove_transition(this.$element[0].style);
+        this.remove_transform(this.$element[0].style);
         if (!this.flags.touched) {
             return;
         }
 
         this.flags.prevented = false;
 
-        // get variation of position between start y axis and current y axis
-        var delta = (this.positions.currentY - this.positions.startY);
+        this.positions.startY = 0;
+        this.positions.startX = 0;
 
-        if (delta > 20) {
-            this.positions.startY = 0;
-            this.positions.startX = 0;
-
-            this.reset();
-
-            this.$element.trigger(PullToRefresh.namespace('end'));
-
+        this.reset();
+        this.$element.trigger(PullToRefresh.namespace('end'));
+        this.remove_transition(this.$element[0].style);
+        this.remove_transform(this.$element[0].style);
+        if(this.flags.refreshed) {
             event.stopPropagation();
             event.preventDefault();
         }
@@ -463,4 +450,4 @@
         return this
     }
 
-})(window.jQuery || window.Zepto, document);
+})(window.jQuery || window.Zepto);
